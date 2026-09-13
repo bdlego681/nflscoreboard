@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NFL Live Scoreboard</title>
+<style>
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:#07111f;color:#f4f6f8;font-family:Arial,Helvetica,sans-serif}
+body{overflow-x:hidden;background:linear-gradient(180deg,#07111f 0,#0b1728 52%,#07111f 100%)}.topbar{height:62px;background:#0a1626;border-bottom:4px solid #d71920;display:flex;align-items:center;justify-content:space-between;padding:0 18px;position:sticky;top:0;z-index:20;box-shadow:0 2px 12px rgba(0,0,0,.35)}
+.brand{font-weight:900;letter-spacing:.1em;font-size:19px;font-style:italic}.brand span{color:#fff;background:#d71920;padding:3px 6px;margin:0 2px}.controls{display:flex;gap:7px;align-items:center}button,input{font:inherit;background:#14243a;color:#fff;border:1px solid #344b68;border-radius:3px;padding:7px 9px}button{cursor:pointer;font-size:11px;font-weight:800;text-transform:uppercase}button:hover{background:#1c3552;border-color:#d71920}
+main{max-width:1500px;margin:auto;padding:15px 12px 24px}.heading{display:flex;align-items:center;justify-content:space-between;margin:2px 2px 12px;border-bottom:1px solid #29415d;padding-bottom:10px}.heading h1{font-size:17px;text-transform:uppercase;letter-spacing:.08em;margin:0}.updated{font-size:10px;color:#8fa5bd}
+.section-title{height:28px;display:flex;align-items:center;padding:0 10px;margin:11px 0 6px;background:#10233a;border-left:4px solid #d71920;color:#dbe5ef;font-size:10px;font-weight:900;letter-spacing:.15em;text-transform:uppercase}
+.games{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px}
+.game{background:#0d1b2e;border:1px solid #29415d;min-width:0;border-radius:2px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.2)}.game.live{border-color:#d71920;box-shadow:inset 0 0 0 1px rgba(215,25,32,.35),0 2px 10px rgba(0,0,0,.3)}
+.game-head{height:26px;padding:0 9px;background:#132740;border-bottom:1px solid #29415d;display:flex;align-items:center;justify-content:space-between;color:#91a6bd;font-size:9px;white-space:nowrap;overflow:hidden}.game-head>span:first-child{overflow:hidden;text-overflow:ellipsis}.status.live{color:#ff5960;font-weight:900}
+.matchup{padding:9px 10px 8px;display:grid;grid-template-columns:1fr 44px;grid-template-rows:1fr 1fr;column-gap:7px;min-height:100px;background:linear-gradient(135deg,#10243c,#0b1829)}.team{display:flex;align-items:center;gap:8px;min-width:0}.team.away{grid-column:1;grid-row:1}.team.home{grid-column:1;grid-row:2}.logo,.fallback-logo{width:32px;height:32px;object-fit:contain;flex:0 0 32px;border-radius:50%;background:#f5f7fa;border:2px solid #fff;padding:2px;box-shadow:0 1px 4px rgba(0,0,0,.35)}.fallback-logo{display:grid;place-items:center;background:#d71920;color:#fff;border-color:#f5f7fa;padding:0;font-size:8px;font-weight:900}.team-name{font-size:11px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.record{font-size:8px;color:#8fa5bd;margin-top:2px}.score{grid-column:2;grid-row:1 / span 2;align-self:center;text-align:right;font-size:25px;font-weight:900;line-height:1.55;color:#fff}.score .dash{display:none}.meta{grid-column:1 / span 2;text-align:right;color:#91a6bd;font-size:8px;margin-top:-1px}.empty{border:1px dashed #3c5875;padding:35px;text-align:center;color:#9aafc4;font-size:12px}.footer{text-align:center;color:#6f88a2;font-size:9px;margin-top:13px}
+.notifications{position:fixed;right:18px;bottom:18px;z-index:30;display:flex;flex-direction:column;align-items:flex-end;gap:8px;pointer-events:none}.notification{min-width:270px;max-width:380px;padding:11px 14px;background:#132740;border:1px solid #d71920;border-left:5px solid #d71920;border-radius:3px;box-shadow:0 5px 18px rgba(0,0,0,.4);animation:notification-in .25s ease-out;color:#fff}.notification-title{font-size:10px;font-weight:900;letter-spacing:.12em;text-transform:uppercase;color:#ff5960}.notification-detail{font-size:12px;font-weight:800;margin-top:3px}.notification-score{font-size:11px;color:#b9cbe0;margin-top:3px}@keyframes notification-in{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.score-updated{display:inline-block;color:#ff5960;animation:score-update 1.8s ease-out}@keyframes score-update{0%{transform:scale(1);text-shadow:0 0 0 rgba(255,89,96,0)}25%{transform:scale(1.22);text-shadow:0 0 14px rgba(255,89,96,.9)}100%{transform:scale(1);text-shadow:0 0 0 rgba(255,89,96,0)}}
+@media(max-width:1100px){.games{grid-template-columns:repeat(3,minmax(0,1fr))}}@media(max-width:780px){.games{grid-template-columns:repeat(2,minmax(0,1fr))}.topbar{padding:0 10px}.brand{font-size:14px}}@media(max-width:480px){.games{grid-template-columns:1fr}.controls input{width:120px}}
+@media(min-width:1200px) and (min-height:700px){body.fullscreen-mode .topbar{height:46px}.fullscreen-mode main{max-width:none;padding:7px 8px}.fullscreen-mode .heading{margin-bottom:5px}.fullscreen-mode .games{grid-template-columns:repeat(4,minmax(0,1fr));gap:4px}.fullscreen-mode .game-head{height:20px}.fullscreen-mode .matchup{min-height:72px;padding:5px 7px}.fullscreen-mode .section-title{height:21px;margin:5px 0 3px}.fullscreen-mode .footer{display:none}}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">NFL <span>LIVE</span> SCOREBOARD</div>
+  <div class="controls">
+    <input id="date" type="date">
+    <button id="fullscreen">Fullscreen</button><button id="refresh">↻</button>
+  </div>
+</header>
+
+<main>
+  <div class="heading">
+    <div>
+      <h1 id="dateTitle">NFL Scoreboard</h1>
+      <div class="updated" id="updated">Loading…</div>
+    </div>
+  </div>
+  <div id="content"></div>
+</main>
+<div id="notifications" class="notifications" aria-live="polite"></div>
+
+<script>
+const API = "https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard";
+const dateInput = document.getElementById("date");
+const content = document.getElementById("content");
+const updated = document.getElementById("updated");
+const dateTitle = document.getElementById("dateTitle");
+const fullscreenBtn = document.getElementById("fullscreen");
+const notifications = document.getElementById("notifications");
+const previousScores = new Map();
+const changedScores = new Set();
+let latestEvents = [];
+
+function todayLocal() {
+  const d = new Date();
+  return new Date(d.getTime() - d.getTimezoneOffset()*60000).toISOString().slice(0,10);
+}
+dateInput.value = todayLocal();
+
+function formatDate(iso) {
+  return new Intl.DateTimeFormat(undefined, {
+    weekday:"long", month:"long", day:"numeric", year:"numeric"
+  }).format(new Date(iso));
+}
+
+function gameState(event) {
+  const type = event.competitions?.[0]?.status?.type;
+  return type?.state || "pre";
+}
+
+function gameStatus(event) {
+  const type = event.competitions?.[0]?.status?.type;
+  if (!type) return "";
+  if (type.state === "in") return type.shortDetail || "LIVE";
+  if (type.state === "post") return type.shortDetail || "FINAL";
+  return type.shortDetail || type.detail || "Scheduled";
+}
+
+function gameTime(event) {
+  const state = gameState(event);
+  if (state === "in" || state === "post") return gameStatus(event);
+  return new Intl.DateTimeFormat(undefined, {hour:"numeric", minute:"2-digit"}).format(new Date(event.date));
+}
+
+function teamInfo(comp, homeAway) {
+  const c = comp.competitors.find(x => x.homeAway === homeAway);
+  return c || {};
+}
+
+function scoringDetails(event, comp, homeAway) {
+  const team = teamInfo(comp, homeAway);
+  const teamId = team.team?.id;
+  const plays = [...(event.plays || []), ...(comp.plays || [])];
+  const scoringPlays = plays.filter(play => play.scoringPlay && (!teamId || play.team?.id === teamId || play.teamId === teamId));
+  const play = scoringPlays[scoringPlays.length - 1];
+  if (!play) return "";
+
+  const names = (play.participants || play.athletes || [])
+    .map(participant => participant.athlete?.displayName || participant.displayName || participant.name)
+    .filter(Boolean);
+  if (names.length) return names.join(", ");
+  return play.text || play.shortText || "";
+}
+
+function notifyScoreChanges(events) {
+  changedScores.clear();
+  events.forEach(event => {
+    const comp = event.competitions?.[0] || {};
+    ["away", "home"].forEach(homeAway => {
+      const team = teamInfo(comp, homeAway);
+      const score = Number(team.score);
+      const key = `${event.id}:${team.team?.id || homeAway}`;
+      const previous = previousScores.get(key);
+      previousScores.set(key, score);
+      if (!Number.isFinite(score) || previous === undefined || score <= previous) return;
+      changedScores.add(key);
+
+      const teamName = team.team?.shortDisplayName || team.team?.displayName || "Team";
+      const detail = scoringDetails(event, comp, homeAway);
+      const notification = document.createElement("div");
+      notification.className = "notification";
+      notification.innerHTML = `<div class="notification-title">Score Update</div><div class="notification-detail">${teamName}${detail ? ` · ${detail}` : ""}</div><div class="notification-score">Now ${score} points</div>`;
+      notifications.appendChild(notification);
+      setTimeout(() => notification.remove(), 8000);
+    });
+  });
+}
+
+function renderGame(event) {
+  const comp = event.competitions?.[0] || {};
+  const away = teamInfo(comp, "away"), home = teamInfo(comp, "home");
+  const state = gameState(event);
+  const live = state === "in";
+  const post = state === "post";
+  const awayScore = away.score ?? "—", homeScore = home.score ?? "—";
+  const awayLogo = away.team?.logo || away.team?.logos?.[0]?.href;
+  const homeLogo = home.team?.logo || home.team?.logos?.[0]?.href;
+  const awayKey = `${event.id}:${away.team?.id || "away"}`;
+  const homeKey = `${event.id}:${home.team?.id || "home"}`;
+
+  const logo = (team, url) => url
+    ? `<img class="logo" src="${url}" alt="${team.team?.abbreviation || ""}">`
+    : `<div class="fallback-logo">${team.team?.abbreviation || "NFL"}</div>`;
+
+  return `
+    <article class="game ${live ? "live" : ""}">
+      <div class="game-head">
+        <span>${event.name || "NFL Game"}</span>
+        <span class="status ${live ? "live" : ""}">${gameStatus(event)}</span>
+      </div>
+      <div class="matchup">
+        <div class="team away">
+          ${logo(away, awayLogo)}
+          <div><div class="team-name">${away.team?.displayName || "Away"}</div>
+          <div class="record">${away.record?.[0]?.summary || ""}</div></div>
+        </div>
+        <div class="team home">
+          ${logo(home, homeLogo)}
+          <div><div class="team-name">${home.team?.displayName || "Home"}</div>
+          <div class="record">${home.record?.[0]?.summary || ""}</div></div>
+        </div>
+        <div class="score"><span class="${changedScores.has(awayKey) ? "score-updated" : ""}">${awayScore}</span><br><span class="${changedScores.has(homeKey) ? "score-updated" : ""}">${homeScore}</span></div>
+        <div class="meta">${post ? "FINAL" : gameTime(event)}</div>
+      </div>
+    </article>`;
+}
+
+function renderScoreboard(events) {
+  const live = events.filter(e => gameState(e) === "in");
+  const upcoming = events.filter(e => gameState(e) === "pre");
+  const final = events.filter(e => gameState(e) === "post");
+
+  let html = "";
+  const section = (title, games) => games.length
+    ? `<div class="section-title">${title} · ${games.length}</div><div class="games">${games.map(renderGame).join("")}</div>`
+    : "";
+
+  html += section("Live", live);
+  html += section("Upcoming", upcoming);
+  html += section("Final", final);
+  content.innerHTML = html;
+}
+
+async function load() {
+  const selected = dateInput.value.replaceAll("-","");
+  const hasScoreboard = content.childElementCount > 0;
+  if (!hasScoreboard) content.innerHTML = `<div class="empty">Loading games…</div>`;
+  try {
+    const res = await fetch(`${API}?dates=${selected}`, {cache:"no-store"});
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    const events = data.events || [];
+    latestEvents = events;
+
+    notifyScoreChanges(events);
+
+    dateTitle.textContent = data.day?.date ? formatDate(data.day.date) : "NFL Scoreboard";
+    updated.textContent = `Last updated ${new Date().toLocaleTimeString([], {hour:"numeric", minute:"2-digit", second:"2-digit"})}`;
+
+    if (!events.length) {
+      content.innerHTML = `<div class="empty">No NFL games scheduled for this date.</div>`;
+      return;
+    }
+
+    renderScoreboard(events);
+  } catch (err) {
+    if (!hasScoreboard) {
+      content.innerHTML = `<div class="empty">Could not load the scoreboard.<br><br>${err.message}</div>`;
+    }
+    updated.textContent = hasScoreboard ? "Refresh failed; showing last update" : "Connection error";
+  }
+}
+
+document.getElementById("refresh").addEventListener("click", load);
+fullscreenBtn.addEventListener("click", async () => {
+  try {
+    if (!document.fullscreenElement) {
+      await document.documentElement.requestFullscreen();
+      document.body.classList.add("fullscreen-mode");
+      fullscreenBtn.textContent = "Exit Fullscreen";
+    } else {
+      await document.exitFullscreen();
+    }
+  } catch(e) {}
+});
+document.addEventListener("fullscreenchange", () => {
+  const on = !!document.fullscreenElement;
+  document.body.classList.toggle("fullscreen-mode", on);
+  fullscreenBtn.textContent = on ? "Exit Fullscreen" : "Fullscreen";
+});
+dateInput.addEventListener("change", load);
+load();
+setInterval(load, 15000);
+</script>
+</body>
+</html>
